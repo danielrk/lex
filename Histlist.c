@@ -32,7 +32,12 @@ static token* copyT (token *list) {
     else {
         token *copy = malloc (sizeof(token));
         
-        // copy text - assumes TEXT string is not empty
+        // copy text - TEXT string must not be empty
+        if (list->text == NULL) {
+            fprintf (stderr, "error: token text empty\n");
+            exit(EXIT_FAILURE);
+        }
+
         textcpy = malloc (sizeof(char) * (strlen(list->text)+1));
         strcpy (textcpy, list->text);
         copy->text = textcpy;

@@ -10,9 +10,10 @@ Histlist createH (void) {
     return NULL;
 }
 
-// Add LIST to the beginning of H
+// Add a copy of LIST to the beginning of H
 void addH (Histlist h, token *list, int ncmd) {
-    Histlist new_node = makeNode(list, ncmd);
+    token *copy = copyT(list);
+    Histlist new_node = makeNode(copy, ncmd);
     if (h == NULL)
         *h = *new_node;
     else {
@@ -24,6 +25,27 @@ void addH (Histlist h, token *list, int ncmd) {
     }
 }
 
+// Return copy of token list recursively
+static token* copyT (token *list) {
+    if (list == NULL)
+        return NULL;
+    else {
+        token *copy = malloc (sizeof(token));
+        
+        // copy text - assumes TEXT string is not empty
+        textcpy = malloc (sizeof(char) * (strlen(list->text)+1));
+        strcpy (textcpy, list->text);
+        copy->text = textcpy;
+
+        // copy type
+        copy->type = list->type;
+        
+        // copy next
+        copy->next = copyT(list->next);
+    }
+}
+
+
 // Return pointer to malloc'd histlist
 static Histlist makeNode (token *list, int ncmd) {
     Histlist h = malloc(sizeof(histlist));
@@ -33,15 +55,16 @@ static Histlist makeNode (token *list, int ncmd) {
     return h;
 }
 
-// Free nodes
+// Free nodes recursively
 void destroyH (Histlist h) {
-    if (h != NULL) {
-        if (h->next == NULL) {
-            free (h) //////////
-        Histlist temp;
-        while (h->next != NULL) {
-            temp = h->next;
-
+    if (h == NULL)
+        ;
+    else {
+        freeList(h->T);
+        destroyH(h->next);
+        free(h);
+    }
+}
 
 
     

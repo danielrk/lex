@@ -5,13 +5,15 @@
 static long histsize = 0;
 static Histlist hist = createH();
 
-// Return recursively-expanded string
+// Return recursively-expanded string.
+// hExpand() sets STATUS to 1 if substitutions were made and all succeeded, to
+// 0 if no substitutions were requested, and to -1 if some substitution failed.
 char *hExpand (const char *oldLine, int *status)
 {
     int exclam = strcspn(oldLine, "!"); // null chars can't be put in stdin
 
     char *prefix; // oldLine before first '!'; may be empty/entire string
-    char *sub;    // hist substitution if requested, otherwise NULL
+    char *sub;    // (possibly empty) hist substitution if requested, otherwise NULL
     char *suffix; // substring of oldLine beyond substring to be 
                   //   substituted, if event; otherwise oldLine from first '!' to end
                   //   can be empty string
@@ -22,21 +24,27 @@ char *hExpand (const char *oldLine, int *status)
     strncpy (prefix, oldLine, exclam);
     prefix[exclam] = '\0';
     
+    if (strlen(prefix) == strlen(oldLine)) { // no '!' in oldLine
+        *status = 0;
+        return prefix;
+    }
 
     // Decode event
-    int first_stat = get_sub_suf (oldLine+exclam, &sub, &suffix);
+    int cur_stat = get_sub_suf (oldLine+exclam, &sub, &suffix);
+    int suf_stat;
+    char *expanded = three_cat(prefix, sub, hExpand(suffix, &suf_stat));
 
-    if (oldLine[exclam+1] == '!') { // "!!"
-        return three_cat (prefix, sub, );
+    if (suf_stat==1) { // status can only possibly change to -1
+        *status = (cur_stat==-1 ? cur_stat : suf_stat);
     }
-    else if () { // "!N"
+    else if (suf_stat==0) { // no events in suffix
+        *status = cur_stat;
     }
-    else if () { // "!-N"
+    else if (suf_stat==-1) { // failed; propagate -1
+        *status = suf_stat;
     }
-    else if () { // "!?STRING?"
-    }
-    else { // "![x]*"; SUB = "!"
-    }
+
+
 
     // Convert nonprinting chars to blanks
     free(prefix);
@@ -44,10 +52,15 @@ char *hExpand (const char *oldLine, int *status)
     free(suffix);
 }
 
+// Return concatenation of three (possibly empty) strings.
+// Only SUB can possibly be NULL, in which case it is ignored. 
+static char* three_cat (char *prefix, char *sub, char *suffix) {
+}
+
 // EXSTR is a string of the form "![...]", which begins with a possible
 // substitution event.
 //
-// Set *psub to command string in histlist (NULL if no sub)
+// Set *psub to (possibly empty) cmd token(s) string in histlist (NULL if no/failed sub)
 //     *psuffix to copy of exstr beyond substitution (can be empty)
 // Return 1 if EXSTR begins with valid substitution event
 //        0 if EXSTR does not begin with a substitution event
@@ -57,29 +70,32 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
 
     int status; // valid sub?
     Histlist h; // ptr to hist node to be substituted, or NULL 
-    char *suf_start; // ptr to suffix substring in exstr
+    char *desig_start; // ptr to after event in exstr
+    int desig_len;     // length of desig; 0 if desig not specified
 
     // "!!"
     if (exstr[1] == '!') {
-        *psub    = (get_nthlast(&h, 1)==0 ? stringify(h->T) : NULL);
-        *psuffix = malloc (sizeof(char) * (strlen(exstr+2) + 1));
-                   strcpy(*psuffix, exstr+2);
+        *psub    = (get_nthlast(&h, 1)==0 ? toktostr(h->T,exstr+2,&desig_len) : NULL);
+        *psuffix = malloc (sizeof(char) * (strlen(exstr+2+desig_len) + 1));
+                   strcpy(*psuffix, exstr+2+desig_len);
     }
     
     // "!N"
     else if (strspn(exstr+1, "0123456789")) {
-        int n = strtol(exstr+1, &suf_start, 10);
-        *psub = (get_cmd(&h, n)==0 ? stringify(h->T) : NULL);
-        *psuffix = malloc (sizeof(char) * (strlen(suf_start) + 1));
-                   strcpy(*psuffix, suf_start);
+        int spn = strspn(exstr+1,"0123456789");
+        int n = strtol(exstr+1, &desig_start, 10);
+        *psub = (get_cmd(&h, n)==0 ? toktostr(h->T,exstr+1+spn,&desig_len) : NULL);
+        *psuffix = malloc (sizeof(char) * (strlen(desig_start+desig_len) + 1));
+                   strcpy(*psuffix, desig_start+desig_len);
     }
 
     // "!-N"
     else if (exstr[1] == '-' && strspn(exstr+2, "0123456789")) {
-        int n = strtol(exstr+2, &suf_start, 10);
-        *psub = (get_nthlast(&h, n)==0 ? stringify(h->T) : NULL);
-        *psuffix = malloc (sizeof(char) * (strlen(suf_start) + 1));
-                   strcpy(*psuffix, suf_start);
+        int n = strtol(exstr+2, &desig_start, 10);
+        int spn = strspn(exstr+2, "0123456789");
+        *psub = (get_nthlast(&h, n)==0 ? toktostr(h->T,exstr+2+spn,&desig_len) : NULL);
+        *psuffix = malloc (sizeof(char) * (strlen(desig_start+desig_len) + 1));
+                   strcpy(*psuffix, desig_start+desig_len);
     }
 
     // "!?[...]"
@@ -96,9 +112,10 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
                 strncpy (s, exstr+2, string_len);
                 s[string_len] = '\0';
                 
-                *psub = (get_match(&h, s)==0 ? stringify(h->T) : NULL);
-                *psuffix = malloc (sizeof(char) * (strlen(exstr+2+string_len) + 1));
-                           strcpy(*psuffix, exstr+2+string_len);
+                *psub = (get_match(&h, s)==0 ? toktostr(h->T,exstr+2+string_len+1,&desig_len) : NULL);
+                // potentially lose '\n' here...
+                *psuffix = malloc (sizeof(char) * (strlen(exstr+2+string_len+1+desig_len) + 1));
+                           strcpy(*psuffix, exstr+2+string_len+1+desig_len);
                 free(s);
             }
             else { // not an event
@@ -227,6 +244,70 @@ static int get_nthlast (Histlist *pH, int n)
         *pH = ptr;
         return 0;
     }
+}
+
+// Return tokens specified by desig as a string,
+// If designated token does not exist, return NULL.
+// Note: 
+//      If * designated, and no tokens to print, 
+// return empty string.
+//      Assumes LIST is not NULL (only called when cmd is found).
+//
+// Set *DESIG_LEN to length of designator (0 if unspecified)
+// DESIG points to substring between event and suffix
+//
+
+// REPLACE STRINGIFY'S WITH TOKTOSTR ABOVE********************************
+static char* toktostr (token *list, char *desig, int *desig_len) {
+    char *tokstr;
+    if (desig[0] == '*') {     // '*' use all but leading token
+        *desig_len = 1;
+        tokstr = stringify (list->next);
+    }
+    else {
+        token *t; // ptr to specified token
+
+        if (desig[0] == '^') { // '^' use 1st token
+
+            *desig_len = 1;
+            t = list->next;
+            if (t == NULL)
+                return NULL;
+
+        }
+
+        else if (desig[0] == '$') { // '$' use last token
+            
+            *desig_len = 1;
+            t = list;
+            while (t->next != NULL) // get last token
+                t = t->next;
+        }
+        
+        // ":M" ( ":[0-9]+" )
+        else if (desig[0] == ':' && strspn(desig+1,"0123456789")) {
+            
+            *desig_len = 1 + strspn(desig+1,"0123456789");
+            int M = strtol (desig+1, NULL, 10); // == nMoves to reach T
+
+            for (int i = 0; i < M; i++) {
+
+                t = t->next;
+                if (t == NULL)  // desig token doesn't exist
+                    return NULL;
+            }
+
+        else { // DESIG not a token designator
+               // return all tokens as a string
+            *desig_len = 0;
+            return stringify (list);
+        }
+
+        tokstr = malloc(sizeof(char) * (strlen(t->text)+1));
+        strcpy(tokstr, t->text);
+
+
+    return tokstr;
 }
 
 // Return string of recursively concatenated 

@@ -9,7 +9,8 @@ Date  Time   Spent  Work completed
 10/5  16:30  2:00   hExpand sketched out, partially implemented
 10/5  19:00  2:00   hExpand auxiliary functions for sub events
 10/5  21:00  2:30   hExpand cont'd
-10/5  23:30  1:00   substitutions (w/o token designators)
+10/5  23:30  1:00   Substitutions (w/o token designators)
+10/6  14:30  1:00   Recursive implementation of hExpand
              ----
                     TOTAL time spent
 

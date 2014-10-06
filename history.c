@@ -1,5 +1,6 @@
 // #include <string.h>  // included in mainLex.c
 // #include <stdlib.h>  // getLine.c includes this
+#include <ctype.h>
 #include "Histlist.h"
 
 static long histsize = 0;
@@ -34,6 +35,11 @@ char *hExpand (const char *oldLine, int *status)
     int suf_stat;
     char *expanded = three_cat(prefix, sub, hExpand(suffix, &suf_stat));
 
+    // Free parts
+    free(prefix);
+    free(sub);
+    free(suffix);
+
     if (suf_stat==1) { // status can only possibly change to -1
         *status = (cur_stat==-1 ? cur_stat : suf_stat);
     }
@@ -44,17 +50,41 @@ char *hExpand (const char *oldLine, int *status)
         *status = suf_stat;
     }
 
-
-
-    // Convert nonprinting chars to blanks
-    free(prefix);
-    free(sub);
-    free(suffix);
+    // Convert nonprinting chars to blanks except terminating newline
+    clean(expanded);
+    return expanded;
 }
 
+// Convert nonprinting chars in S to blanks except terminating newline
+static void clean (char *s) {
+    char *p;
+    for (p = s; *p != '\0'; p++) {
+        // ignore terminating newline
+        if (*p == '\n' && *(p+1) == '\0')
+            break;
+
+        if (!isgraph(*p))
+            *p = ' ';
+    }
+}
+
+    
 // Return concatenation of three (possibly empty) strings.
 // Only SUB can possibly be NULL, in which case it is ignored. 
 static char* three_cat (char *prefix, char *sub, char *suffix) {
+    char *result;
+    if (sub == NULL) { 
+        result = malloc (sizeof(char) * (strlen(prefix)+strlen(suffix)+1));
+        strncpy(result, prefix, strlen(prefix));
+        strcpy(result+strlen(prefix), suffix);
+    }
+    else {
+        result = malloc (sizeof(char) * (strlen(prefix)+strlen(sub)+strlen(suffix)+1));
+        strncpy(result, prefix, strlen(prefix));
+        strncpy(result+strlen(prefix), sub, strlen(sub));
+        strcpy(result+strlen(prefix)+strlen(sub), suffix);
+    }
+    return result;
 }
 
 // EXSTR is a string of the form "![...]", which begins with a possible
@@ -114,8 +144,14 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
                 
                 *psub = (get_match(&h, s)==0 ? toktostr(h->T,exstr+2+string_len+1,&desig_len) : NULL);
                 // potentially lose '\n' here...
-                *psuffix = malloc (sizeof(char) * (strlen(exstr+2+string_len+1+desig_len) + 1));
-                           strcpy(*psuffix, exstr+2+string_len+1+desig_len);
+                if (exstr[2+string_len] == '?') {
+                    *psuffix = malloc (sizeof(char) * (strlen(exstr+2+string_len+1+desig_len) + 1));
+                               strcpy(*psuffix, exstr+2+string_len+1+desig_len);
+                }
+                else if (exstr[2+string_len] == '\n') { // no designator, suffix includes '\n'
+                    *psuffix = malloc (sizeof(char) * (strlen(exstr+2+string_len) + 1)) 
+                               strcpy(*psuffix, exstr+2+string_len);
+                }
                 free(s);
             }
             else { // not an event
@@ -257,7 +293,6 @@ static int get_nthlast (Histlist *pH, int n)
 // DESIG points to substring between event and suffix
 //
 
-// REPLACE STRINGIFY'S WITH TOKTOSTR ABOVE********************************
 static char* toktostr (token *list, char *desig, int *desig_len) {
     char *tokstr;
     if (desig[0] == '*') {     // '*' use all but leading token

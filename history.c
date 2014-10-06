@@ -11,9 +11,9 @@ char *hExpand (const char *oldLine, int *status)
     int exclam = strcspn(oldLine, "!"); // null chars can't be put in stdin
 
     char *prefix; // oldLine before first '!'; may be empty/entire string
-    char *sub;    // hist substitution if requested, otherwise "!"
+    char *sub;    // hist substitution if requested, otherwise NULL
     char *suffix; // substring of oldLine beyond substring to be 
-                  //   substituted, if any; otherwise oldLine[exclam+1 to end]
+                  //   substituted, if event; otherwise oldLine from first '!' to end
                   //   can be empty string
 
 
@@ -82,13 +82,50 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
                    strcpy(*psuffix, suf_start);
     }
 
-    // "!?STRING?"
-    else if (exstr[1] == '?' && (strcspn()
-    status   = (*psub == NULL ? -1 : 1);
+    // "!?[...]"
+    else if (exstr[1] == '?') { 
+        int string_len = strcspn(exstr+2, " !?\n");
+        if (string_len) { // "!?STRING[...]"
 
+            // "!?STRING\n" or "!?STRING?[...]"
+            if (exstr[2+string_len] == '\n' ||
+                exstr[2+string_len] == '?'    ) {
+                
+                // extract STRING
+                char *s = malloc(sizeof(char) * (string_len + 1));
+                strncpy (s, exstr+2, string_len);
+                s[string_len] = '\0';
+                
+                *psub = (get_match(&h, s)==0 ? stringify(h->T) : NULL);
+                *psuffix = malloc (sizeof(char) * (strlen(exstr+2+string_len) + 1));
+                           strcpy(*psuffix, exstr+2+string_len);
+                free(s);
+            }
+            else { // not an event
+                *psub = NULL;
+                *psuffix = malloc (sizeof(char) * (strlen(exstr) + 1));
+                           strcpy (*psuffix, exstr);
+                return 0;
+            }
+        }
+        else { // not an event
+            *psub = NULL;
+            *psuffix = malloc (sizeof(char) * (strlen(exstr) + 1));
+                       strcpy (*psuffix, exstr);
+            return 0;
+        }
+    }
 
-
-
+    // "![...]" not an event
+    else {
+        *psub = NULL;
+        *psuffix = malloc (sizeof(char) * (strlen(exstr) + 1));
+                   strcpy (*psuffix, exstr);
+        return 0;
+    }
+    
+    // if event, return status of substitution
+    status = (*psub == NULL ? -1 : 1);
     return status;
 }
 

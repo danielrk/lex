@@ -63,8 +63,104 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
     }
 }
 
-static Histlist nthlast (Histlist h, )
+// Set *pH to point to the most recent remembered command
+// with a token that contains S, which is assumed to be
+// a nonempty sequence of characters that does not contain
+// whitespace or ! or ?; or NULL otherwise.
+//
+// Return 0 if such node exists, or -1 otherwise
+static int get_match (Histlist *pH, char *s) {
+    if (histsize == 0) {
+        *pH = NULL;
+        return -1;
+    }
+    
+    int loc = -1;   // nMoves to reach target command in HIST 
+    int nMoves = 0; // number of headptr moves performed
+    Histlist ptr;
+    for (ptr = hist; ptr != NULL; ptr = ptr->next) {
+        if (isMatch(ptr->T, s))
+            loc = nMoves;
+        
+        nMoves++;
+    } 
+    
+    if (loc == -1) { // no such cmd
+        *pH = NULL;
+        return -1;
+    }
+
+    ptr = hist;      // success; return pointer to target
+    for (int i = 0; i < loc; i++)
+        ptr = ptr->next;
+
+    *pH = ptr;
+    return 0;
+}
+
+// Return 1 if LIST contains a token containing S
+//        0 otherwise
+static int isMatch (token *list, char *s) {
+    token *t;
+    for (t = list; t != NULL; t = t->next) {
+        if (strstr(t->text, s) != NULL)   // is match?
+            return 1;
+
+    }
+    return 0;
+}
+
+// Set *pH to point to the node in hist
+// whose ncmd = n
+// If node exists, return 0
+// Otherwise, return -1
+// Assume n >= 0 
+static int get_cmd (Histlist *pH, int n) {
+    if (n == 0 || histsize==0) {
+        *pH = NULL;
+        return -1;
+    }
+    else {
+        Histlist ptr = hist;
+        for (; ptr != NULL && ptr->N != n; ptr = ptr->next) {
+            if (n < ptr->N) { // N only increases down hist
+                *pH = NULL;
+                return -1;
+            }
+        }
+        if (ptr == NULL) {
+            *pH = NULL;
+            return -1;
+        }
+        else { // ptr->N == n
+            *pH = ptr;
+            return 0;
+        }
+    }
+}
+// Set *pH to point to Nth last node in HIST 
+// Return 0 if such node exists; -1 otherwise
+// Assume N >= 0 
+static int get_nthlast (Histlist *pH, int n)
 {
+    if (n == 0) {
+        *pH = NULL;
+        return -1;
+    }
+    
+    int nMoves = histsize - n;
+    if (nMoves < 0) { 
+        *pH = NULL;
+        return -1;
+    }
+    else { // Nth last command remembered
+        Histlist ptr = hist;
+        for (int i = 0; i < nMoves; i++)
+            ptr = ptr->next;
+
+        *pH = ptr;
+        return 0;
+    }
 }
 
 // Return string of recursively concatenated 

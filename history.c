@@ -6,7 +6,9 @@
 static long histsize = 0;
 static Histlist hist = createH();
 
-// Return recursively-expanded string.
+// Return recursively-expanded string, with non-printing chars in oldLine
+// converted to blanks (except terminating newlines).
+//
 // hExpand() sets STATUS to 1 if substitutions were made and all succeeded, to
 // 0 if no substitutions were requested, and to -1 if some substitution failed.
 char *hExpand (const char *oldLine, int *status)
@@ -63,8 +65,9 @@ static void clean (char *s) {
         if (*p == '\n' && *(p+1) == '\0')
             break;
 
-        if (!isgraph(*p))
-            *p = ' ';
+        if (!isgraph(*p)) { // convert to space unless already blank
+            *p = (isblank(*p)? *p : ' ');
+        }
     }
 }
 

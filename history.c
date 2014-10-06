@@ -2,13 +2,13 @@
 // #include <stdlib.h>  // getLine.c includes this
 #include "Histlist.h"
 
-static int histsize = 0;
+static long histsize = 0;
 static Histlist hist = createH();
 
 // Return recursively-expanded string
 char *hExpand (const char *oldLine, int *status)
 {
-    int exclam = strspn(oldLine, "!"); // null chars can't be put in stdin
+    int exclam = strcspn(oldLine, "!"); // null chars can't be put in stdin
 
     char *prefix; // oldLine before first '!'; may be empty/entire string
     char *sub;    // hist substitution if requested, otherwise "!"
@@ -37,6 +37,8 @@ char *hExpand (const char *oldLine, int *status)
     }
     else { // "![x]*"; SUB = "!"
     }
+
+    // Convert nonprinting chars to blanks
     free(prefix);
     free(sub);
     free(suffix);
@@ -52,15 +54,42 @@ char *hExpand (const char *oldLine, int *status)
 //       -1 if EXSTR begins with an impossible substitution event
 //
 static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
-    int status;
-    
+
+    int status; // valid sub?
+    Histlist h; // ptr to hist node to be substituted, or NULL 
+    char *suf_start; // ptr to suffix substring in exstr
+
     // "!!"
     if (exstr[1] == '!') {
-        
-        if (histsize >= 1) {
-            *psub =;
-        }
+        *psub    = (get_nthlast(&h, 1)==0 ? stringify(h->T) : NULL);
+        *psuffix = malloc (sizeof(char) * (strlen(exstr+2) + 1));
+                   strcpy(*psuffix, exstr+2);
     }
+    
+    // "!N"
+    else if (strspn(exstr+1, "0123456789")) {
+        int n = strtol(exstr+1, &suf_start, 10);
+        *psub = (get_cmd(&h, n)==0 ? stringify(h->T) : NULL);
+        *psuffix = malloc (sizeof(char) * (strlen(suf_start) + 1));
+                   strcpy(*psuffix, suf_start);
+    }
+
+    // "!-N"
+    else if (exstr[1] == '-' && strspn(exstr+2, "0123456789")) {
+        int n = strtol(exstr+2, &suf_start, 10);
+        *psub = (get_nthlast(&h, n)==0 ? stringify(h->T) : NULL);
+        *psuffix = malloc (sizeof(char) * (strlen(suf_start) + 1));
+                   strcpy(*psuffix, suf_start);
+    }
+
+    // "!?STRING?"
+    else if (exstr[1] == '?' && (strcspn()
+    status   = (*psub == NULL ? -1 : 1);
+
+
+
+
+    return status;
 }
 
 // Set *pH to point to the most recent remembered command
@@ -111,7 +140,7 @@ static int isMatch (token *list, char *s) {
 }
 
 // Set *pH to point to the node in hist
-// whose ncmd = n
+// whose ncmd = n, or NULL
 // If node exists, return 0
 // Otherwise, return -1
 // Assume n >= 0 
@@ -197,7 +226,7 @@ static char* concat (const char *s1, const char *s2) {
 void hRemember(int ncmd, token *list)
 {
     // get effective histsize limit    
-    int limit = 323; 
+    long limit = 323; 
     char *env = getenv("HISTSIZE");
     if (env != NULL && strtol(env, NULL, 10) > 0)
         limit = strtol(env, NULL, 10);
@@ -208,9 +237,14 @@ void hRemember(int ncmd, token *list)
 
     // now assume if histsize > limit,
     // histsize == limit + 1
-    if (histsize > limit)
+    if (histsize > limit) {
+        Histlist tmp = hist;
         hist = hist->next;
+        tmp->next = NULL;
+        destroyH(tmp);
+    }
 }
+
 
 // Free hist and reinitialize
 void hClear (void) {

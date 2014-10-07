@@ -20,8 +20,9 @@ Date  Time   Spent  Work completed
 10/7  10:00  1:00   fixed seg fault
 10/7  11:00  1:00   fixed infinite loop for [..]![..]
                     memleak in lex.c
-                    fixed warnings w/ const char*
-
+10/7  12:00  0:40   fixed warnings w/ const char*
+                    passed all public tests
+                    style edits
              ----
              24:30       TOTAL time spent
 

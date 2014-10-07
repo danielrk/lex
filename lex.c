@@ -1,3 +1,7 @@
+#include <string.h> 
+#include <stdlib.h>
+#include "/c/cs323/Hwk4/lex.h"
+
 // Return a recursively built linked list of
 // tokens in LINE, or NULL if no tokens
 //
@@ -23,7 +27,10 @@ token *lex (const char *line) {
     // "[nonblank]+..." or "" or "\n"
     if (*p == '\0' || *p == '\n')
         return NULL;
-    
+   
+
+    // TOKEN EXISTS
+    // P now fixed at beginning of token
     // "[nonblank]+..."
 
     // metachar token
@@ -33,12 +40,21 @@ token *lex (const char *line) {
 
     // simple nonblanks
     else {
+        // take everything until
+        // metachar, blank, newline, or null char
+        int s_len = strcspn(p, "<>;&|() \n\0");
+        s = malloc(sizeof(char) * (s_len + 1));
+        strncpy(s, p, s_len);
+        s[s_len] = '\0';
+        t_type = SIMPLE;
+    }
 
 
     list->text = s;
-    list->type = ;
-    list->next = lex( )
-
+    list->type = t_type;
+    list->next = lex(p+strlen(s));
+    
+    return list;
 }
 
 // Return copy of initial substring token
@@ -53,17 +69,19 @@ static char* metatext(char *s, int *t_type) {
     if (strspn(s, ";()")) {
         text[0] = *s;
         text[1] = '\0';
-
     }
 
     // among "<>&|", need to check single/double
     else {
-        char *single = malloc(sizeof(char) * 2);
-        single[0] = s[0];
-        single[1] = '\0';
+        text[0] = s[0];
+        text[1] = '\0';
+        if (strspn(s, text) >= 2) { // double the char
+            text[1] = text[0];
+            text[2] = '\0';
+        }
+    }            
 
-        int size = strspn(s, single); // 1 or >=2
-        
+    *t_type = get_type(text);
     return text;
 }
 
@@ -71,8 +89,30 @@ static char* metatext(char *s, int *t_type) {
 // which is a null-terminated string consisting
 // of the text of a single metacharacter token
 static int get_type (char *meta) {
-    if (strcmp(
+    if (strcmp(meta, "<")==0)
+        return REDIR_IN;
+    if (strcmp(meta, "<<")==0)
+        return REDIR_HERE;
+    if (strcmp(meta, "|")==0)
+        return REDIR_PIPE;
+    if (strcmp(meta, ">")==0)
+        return REDIR_OUT;
+    if (strcmp(meta, ">>")==0)
+        return REDIR_APP;
+    if (strcmp(meta, ";")==0)
+        return SEP_END;
+    if (strcmp(meta, "&")==0)
+        return SEP_BG;
+    if (strcmp(meta, "&&")==0)
+        return SEP_AND;
+    if (strcmp(meta, "||")==0)
+        return SEP_OR;
+    if (strcmp(meta, "(")==0)
+        return PAREN_LEFT;
+    if (strcmp(meta, ")")==0)
+        return PAREN_RIGHT;
 
+    return EXIT_FAILURE; // bad input
 }
     
 

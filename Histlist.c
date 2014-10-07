@@ -1,9 +1,9 @@
-// Histlist is a singly-linked list 
-struct histlist {
-    Histlist next;
-    int N; // ncmd
-    token *T;
-}
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "/c/cs323/Hwk4/lex.h"
+#include "Histlist.h"
+
 
 // Return empty Histlist
 Histlist createH (void) {

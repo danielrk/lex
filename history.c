@@ -1,5 +1,6 @@
-// #include <string.h>  // included in mainLex.c
-// #include <stdlib.h>  // getLine.c includes this
+#include <string.h>  // included in mainLex.c
+#include <stdlib.h>  // getLine.c includes this
+#include <stdio.h>
 #include <ctype.h>
 #include "Histlist.h"
 

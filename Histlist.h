@@ -1,5 +1,9 @@
-// List of token lists
-typedef struct histlist *Histlist;
+// Histlist is a singly-linked list 
+typedef struct {
+    Histlist next;
+    int N; // ncmd
+    token *T;
+} histlist *Histlist;
 
 // Return pointer to empty histlist 
 Histlist createH (void);

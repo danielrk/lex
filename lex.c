@@ -3,6 +3,66 @@
 #include <ctype.h>
 #include "/c/cs323/Hwk4/lex.h"
 
+// Return type of token specified by META, 
+// which is a null-terminated string consisting
+// of the text of a single metacharacter token
+static int get_type (char *meta) {
+    if (strcmp(meta, "<")==0)
+        return REDIR_IN;
+    if (strcmp(meta, "<<")==0)
+        return REDIR_HERE;
+    if (strcmp(meta, "|")==0)
+        return REDIR_PIPE;
+    if (strcmp(meta, ">")==0)
+        return REDIR_OUT;
+    if (strcmp(meta, ">>")==0)
+        return REDIR_APP;
+    if (strcmp(meta, ";")==0)
+        return SEP_END;
+    if (strcmp(meta, "&")==0)
+        return SEP_BG;
+    if (strcmp(meta, "&&")==0)
+        return SEP_AND;
+    if (strcmp(meta, "||")==0)
+        return SEP_OR;
+    if (strcmp(meta, "(")==0)
+        return PAREN_LEFT;
+    if (strcmp(meta, ")")==0)
+        return PAREN_RIGHT;
+
+    return EXIT_FAILURE; // bad input
+}
+    
+
+// Return copy of initial substring token
+// of metachars, and set *T_TYPE to token type
+// S is in the form "[META]+..."
+static char* metatext(char *s, int *t_type) {
+    
+    // token text at most length 2
+    char *text = malloc(sizeof(char) * 3); 
+
+    // among ";()"
+    if (strspn(s, ";()")) {
+        text[0] = *s;
+        text[1] = '\0';
+    }
+
+    // among "<>&|", need to check single/double
+    else {
+        text[0] = s[0];
+        text[1] = '\0';
+        if (strspn(s, text) >= 2) { // double the char
+            text[1] = text[0];
+            text[2] = '\0';
+        }
+    }            
+
+    *t_type = get_type(text);
+    return text;
+}
+
+    
 // Return a recursively built linked list of
 // tokens in LINE, or NULL if no tokens
 //
@@ -58,65 +118,5 @@ token *lex (const char *line) {
     return list;
 }
 
-// Return copy of initial substring token
-// of metachars, and set *T_TYPE to token type
-// S is in the form "[META]+..."
-static char* metatext(char *s, int *t_type) {
-    
-    // token text at most length 2
-    char *text = malloc(sizeof(char) * 3); 
-
-    // among ";()"
-    if (strspn(s, ";()")) {
-        text[0] = *s;
-        text[1] = '\0';
-    }
-
-    // among "<>&|", need to check single/double
-    else {
-        text[0] = s[0];
-        text[1] = '\0';
-        if (strspn(s, text) >= 2) { // double the char
-            text[1] = text[0];
-            text[2] = '\0';
-        }
-    }            
-
-    *t_type = get_type(text);
-    return text;
-}
-
-// Return type of token specified by META, 
-// which is a null-terminated string consisting
-// of the text of a single metacharacter token
-static int get_type (char *meta) {
-    if (strcmp(meta, "<")==0)
-        return REDIR_IN;
-    if (strcmp(meta, "<<")==0)
-        return REDIR_HERE;
-    if (strcmp(meta, "|")==0)
-        return REDIR_PIPE;
-    if (strcmp(meta, ">")==0)
-        return REDIR_OUT;
-    if (strcmp(meta, ">>")==0)
-        return REDIR_APP;
-    if (strcmp(meta, ";")==0)
-        return SEP_END;
-    if (strcmp(meta, "&")==0)
-        return SEP_BG;
-    if (strcmp(meta, "&&")==0)
-        return SEP_AND;
-    if (strcmp(meta, "||")==0)
-        return SEP_OR;
-    if (strcmp(meta, "(")==0)
-        return PAREN_LEFT;
-    if (strcmp(meta, ")")==0)
-        return PAREN_RIGHT;
-
-    return EXIT_FAILURE; // bad input
-}
-    
-
-    
     
 

@@ -23,7 +23,7 @@ static token* copyT (token *list) {
             exit(EXIT_FAILURE);
         }
 
-        textcpy = malloc (sizeof(char) * (strlen(list->text)+1));
+        char *textcpy = malloc (sizeof(char) * (strlen(list->text)+1));
         strcpy (textcpy, list->text);
         copy->text = textcpy;
 
@@ -40,7 +40,7 @@ static token* copyT (token *list) {
 
 // Return pointer to malloc'd histlist
 static Histlist makeNode (token *list, int ncmd) {
-    Histlist h = malloc(sizeof(histlist));
+    Histlist h; // = malloc (sizeof(histlist));
     h->next = NULL;
     h->N = ncmd;
     h->T = list;
@@ -71,7 +71,7 @@ void destroyH (Histlist h) {
     else {
         freeList(h->T);
         destroyH(h->next);
-        free(h);
+     //   free(h);
     }
 }
 

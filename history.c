@@ -306,7 +306,7 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
                                strcpy(*psuffix, exstr+2+string_len+1+desig_len);
                 }
                 else if (exstr[2+string_len] == '\n') { // no designator, suffix includes '\n'
-                    *psuffix = malloc (sizeof(char) * (strlen(exstr+2+string_len) + 1)) 
+                    *psuffix = malloc (sizeof(char) * (strlen(exstr+2+string_len) + 1)); 
                                strcpy(*psuffix, exstr+2+string_len);
                 }
                 free(s);
@@ -448,13 +448,13 @@ void hDump (int n) {
     else if (n == 0)
         ;
     else {
-        nMoves = histsize - n;            // histlist head ptr moves nMoves times
+        int nMoves = histsize - n;            // histlist head ptr moves nMoves times
         nMoves = (nMoves < 0 ? 0:nMoves); // force nMoves >=0
         Histlist p = hist;
 
         for (int i = 0; i < nMoves; i++) {
             if (p == NULL) {
-                fprintf (stderr, "histsize = %d but hist==NULL after %d nexts\n",
+                fprintf (stderr, "histsize = %ld but hist==NULL after %d nexts\n",
                         histsize, i);
                 exit(EXIT_FAILURE);
             }

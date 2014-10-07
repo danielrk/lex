@@ -12,3 +12,4 @@ Histlist.o : Histlist.c Histlist.h $(HWK4)/lex.h
 
 lex.o : lex.c $(HWK4)/lex.h
 
+$(HWK4)/mainLex.o : $(HWK4)/mainLex.c $(HWK4)/lex.h $(HWK4)/history.h $(HWK4)/getLine.h

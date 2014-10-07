@@ -189,11 +189,16 @@ static char* stringify (token *list) {
 // DESIG points to substring between event and suffix
 //
 
-static char* toktostr (token *list, char *desig, int *desig_len) {
+static char* toktostr (Histlist h, char *desig, int *desig_len) {
     char *tokstr;
+    token *list;
+    if (h != NULL)  // if H==NULL, function just returns NULL after sets desig_len 
+        list = h->T;
+
     if (desig[0] == '*') {     // '*' use all but leading token
         *desig_len = 1;
-        tokstr = stringify (list->next);
+
+        tokstr = (h == NULL ? NULL : stringify (list->next));
     }
     else {
         token *t; // ptr to specified token
@@ -201,7 +206,7 @@ static char* toktostr (token *list, char *desig, int *desig_len) {
         if (desig[0] == '^') { // '^' use 1st token
 
             *desig_len = 1;
-            t = list->next;
+            t = (h==NULL ? NULL : list->next);
             if (t == NULL)
                 return NULL;
 
@@ -210,6 +215,9 @@ static char* toktostr (token *list, char *desig, int *desig_len) {
         else if (desig[0] == '$') { // '$' use last token
             
             *desig_len = 1;
+            if (h == NULL)
+                return NULL;
+
             t = list;
             while (t->next != NULL) // get last token
                 t = t->next;
@@ -220,6 +228,9 @@ static char* toktostr (token *list, char *desig, int *desig_len) {
             
 
             *desig_len = 1 + strspn(desig+1,"0123456789");
+            if (h==NULL)
+                return NULL;
+
             int M = strtol (desig+1, NULL, 10); // == nMoves to reach T
             t = list;
             for (int i = 0; i < M; i++) {
@@ -234,6 +245,9 @@ static char* toktostr (token *list, char *desig, int *desig_len) {
         else { // DESIG not a token designator
                // return all tokens as a string
             *desig_len = 0;
+            if (h==NULL)
+                return NULL;
+
             return stringify (list);
         }
         tokstr = malloc(sizeof(char) * (strlen(t->text)+1));
@@ -263,7 +277,8 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
 
     // "!!"
     if (exstr[1] == '!') {
-        *psub    = (get_nthlast(&h, 1)==0 ? toktostr(h->T,exstr+2,&desig_len) : NULL);
+        get_nthlast(&h, 1);
+        *psub    = toktostr(h,exstr+2,&desig_len);
         *psuffix = malloc (sizeof(char) * (strlen(exstr+2+desig_len) + 1));
                    strcpy(*psuffix, exstr+2+desig_len);
     }
@@ -272,7 +287,8 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
     else if (strspn(exstr+1, "0123456789")) {
         int spn = strspn(exstr+1,"0123456789");
         int n = strtol(exstr+1, &desig_start, 10);
-        *psub = (get_cmd(&h, n)==0 ? toktostr(h->T,exstr+1+spn,&desig_len) : NULL);
+        get_cmd(&h, n);
+        *psub = toktostr(h,exstr+1+spn,&desig_len);
         *psuffix = malloc (sizeof(char) * (strlen(desig_start+desig_len) + 1));
                    strcpy(*psuffix, desig_start+desig_len);
     }
@@ -281,7 +297,8 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
     else if (exstr[1] == '-' && strspn(exstr+2, "0123456789")) {
         int n = strtol(exstr+2, &desig_start, 10);
         int spn = strspn(exstr+2, "0123456789");
-        *psub = (get_nthlast(&h, n)==0 ? toktostr(h->T,exstr+2+spn,&desig_len) : NULL);
+        get_nthlast(&h, n);
+        *psub = toktostr(h,exstr+2+spn,&desig_len);
         *psuffix = malloc (sizeof(char) * (strlen(desig_start+desig_len) + 1));
                    strcpy(*psuffix, desig_start+desig_len);
     }
@@ -299,8 +316,9 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
                 char *s = malloc(sizeof(char) * (string_len + 1));
                 strncpy (s, exstr+2, string_len);
                 s[string_len] = '\0';
-                
-                *psub = (get_match(&h, s)==0 ? toktostr(h->T,exstr+2+string_len+1,&desig_len) : NULL);
+
+                get_match(&h, s);
+                *psub = toktostr(h,exstr+2+string_len+1,&desig_len);
                 // potentially lose '\n' here...
                 if (exstr[2+string_len] == '?') {
                     *psuffix = malloc (sizeof(char) * (strlen(exstr+2+string_len+1+desig_len) + 1));

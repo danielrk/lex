@@ -19,6 +19,7 @@ Date  Time   Spent  Work completed
 10/7   1:00  2:00   :M memory bug
 10/7  10:00  1:00   fixed seg fault
 10/7  11:00  0:40   fixed infinite loop for [..]![..]
+                    memleak in lex.c
              ----
                     TOTAL time spent
 

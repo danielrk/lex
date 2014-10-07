@@ -86,8 +86,10 @@ token *lex (const char *line) {
         p++;
 
     // "[nonblank]+..." or ""
-    if (*p == '\0')
+    if (*p == '\0') {
+        free(list);
         return NULL;
+    }
    
 
     // TOKEN EXISTS

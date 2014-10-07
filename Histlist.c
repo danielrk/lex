@@ -40,8 +40,7 @@ static token* copyT (token *list) {
 
 // Return pointer to malloc'd histlist
 static Histlist makeNode (token *list, int ncmd) {
-    histlist tmp;
-    Histlist h = &tmp; // = malloc (sizeof(histlist));
+    Histlist h = malloc (sizeof(*h));
     h->next = NULL;
     h->N = ncmd;
     h->T = list;
@@ -72,7 +71,7 @@ void destroyH (Histlist h) {
     else {
         freeList(h->T);
         destroyH(h->next);
-     //   free(h);
+        free(h);
     }
 }
 

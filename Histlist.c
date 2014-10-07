@@ -49,13 +49,13 @@ static Histlist makeNode (token *list, int ncmd) {
 
 
 // Add a copy of LIST to the beginning of H
-void addH (Histlist h, token *list, int ncmd) {
+void addH (Histlist *pH, token *list, int ncmd) {
     token *copy = copyT(list);
     Histlist new_node = makeNode(copy, ncmd);
-    if (h == NULL)
-        *h = *new_node;
+    if (*pH == NULL) {
+        *pH = new_node;
     else {
-        Histlist ptr = h;
+        Histlist ptr = *pH;
         while (ptr->next != NULL)
             ptr = ptr->next;
 

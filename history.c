@@ -401,7 +401,7 @@ void hRemember(int ncmd, token *list)
         limit = strtol(env, NULL, 10);
 
     // add LIST,NCMD to HIST
-    addH (hist, list, ncmd);
+    addH (&hist, list, ncmd);
     histsize++;
 
     // now assume if histsize > limit,

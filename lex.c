@@ -81,12 +81,12 @@ token *lex (const char *line) {
     char *s;        // token text
     int t_type;     // token type
     
-    // Skip blanks (spaces, tabs)
-    while (*p != '\0' && isblank(*p))
+    // Skip blanks (spaces, tabs, newlines, etc.)
+    while (*p != '\0' && isspace(*p))
         p++;
 
-    // "[nonblank]+..." or "" or "\n"
-    if (*p == '\0' || *p == '\n')
+    // "[nonblank]+..." or ""
+    if (*p == '\0')
         return NULL;
    
 
@@ -102,8 +102,8 @@ token *lex (const char *line) {
     // simple nonblanks
     else {
         // take everything until
-        // metachar, blank, newline, or null char
-        int s_len = strcspn(p, "<>;&|() \n\0");
+        // metachar, blank, newline, null, etc. 
+        int s_len = strcspn(p, "<>;&|() \t\n\v\f\r\0");
         s = malloc(sizeof(char) * (s_len + 1));
         strncpy(s, p, s_len);
         s[s_len] = '\0';

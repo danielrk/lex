@@ -237,7 +237,7 @@ static char* toktostr (token *list, char *desig, int *desig_len) {
 
         tokstr = malloc(sizeof(char) * (strlen(t->text)+1));
         strcpy(tokstr, t->text);
-
+    }
 
     return tokstr;
 }

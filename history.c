@@ -227,6 +227,7 @@ static char* toktostr (token *list, char *desig, int *desig_len) {
                 if (t == NULL)  // desig token doesn't exist
                     return NULL;
             }
+        }
 
         else { // DESIG not a token designator
                // return all tokens as a string

@@ -422,14 +422,14 @@ void hClear (void) {
 }
 
 // Print a command (list of tokens) in the following form:
-//     printf ("%6d %s %s ... %s\n", icmd, token0, token1, ..., tokenLast)
+//     printf ("%6d  %s %s ... %s\n", icmd, token0, token1, ..., tokenLast)
 static void print_tlist (token *list, int icmd) {
     if (list == NULL) {
         fprintf (stderr, "print_tlist NULL token\n");
         exit (EXIT_FAILURE);
     }
 
-    printf ("%6d",icmd);
+    printf ("%6d ",icmd);
     token *t;
     for (t = list; t != NULL; t = t->next) {
         printf(" %s", t->text);

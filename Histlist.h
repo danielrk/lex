@@ -1,11 +1,11 @@
 #include "/c/cs323/Hwk4/lex.h"
 
 // Histlist is a singly-linked list 
-typedef struct {
+typedef struct histlist {
     Histlist next;
     int N; // ncmd
     token *T;
-} histlist Histlist*;
+} *Histlist;
 
 // Return pointer to empty histlist 
 Histlist createH (void);

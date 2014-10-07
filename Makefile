@@ -8,5 +8,7 @@ Lex: $(HWK4)/mainLex.o history.o Histlist.o lex.o
 
 history.o : history.c Histlist.h
 
+Histlist.o : Histlist.c Histlist.h $(HWK4)/lex.h
+
 lex.o : lex.c $(HWK4)/lex.h
 

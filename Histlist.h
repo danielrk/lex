@@ -1,3 +1,5 @@
+#include "/c/cs323/Hwk4/lex.h"
+
 // Histlist is a singly-linked list 
 typedef struct {
     Histlist next;

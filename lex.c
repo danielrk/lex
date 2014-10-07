@@ -77,7 +77,7 @@ token *lex (const char *line) {
 
     char *p = line; // pointer along line
 
-    token *list;    // pointer to immediate token
+    token *list = malloc(sizeof(*list));    // pointer to immediate token
     char *s;        // token text
     int t_type;     // token type
     

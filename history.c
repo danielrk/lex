@@ -387,7 +387,13 @@ char *hExpand (const char *oldLine, int *status)
     // Decode event
     int cur_stat = get_sub_suf (oldLine+exclam, &sub, &suffix);
     int suf_stat;
-    char *expanded = three_cat(prefix, sub, hExpand(suffix, &suf_stat));
+
+
+    char *expanded;
+    if (cur_stat == 0) // [...]![...] make sure hExpand passes '!' or inf loop
+        expanded = three_cat(prefix, "!", hExpand(suffix+1, &suf_stat));
+    else
+        expanded = three_cat(prefix, sub, hExpand(suffix, &suf_stat));
 
     // Free parts
     free(prefix);

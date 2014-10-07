@@ -1,5 +1,6 @@
 #include <string.h> 
 #include <stdlib.h>
+#include <ctype.h>
 #include "/c/cs323/Hwk4/lex.h"
 
 // Return a recursively built linked list of

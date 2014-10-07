@@ -419,6 +419,7 @@ void hRemember(int ncmd, token *list)
 void hClear (void) {
     destroyH(hist);
     hist = createH();
+    histsize = 0;
 }
 
 // Print a command (list of tokens) in the following form:

@@ -52,7 +52,7 @@ static Histlist makeNode (token *list, int ncmd) {
 void addH (Histlist *pH, token *list, int ncmd) {
     token *copy = copyT(list);
     Histlist new_node = makeNode(copy, ncmd);
-    if (*pH == NULL) {
+    if (*pH == NULL) 
         *pH = new_node;
     else {
         Histlist ptr = *pH;

@@ -1,3 +1,10 @@
+/* An implementation of the history list
+ * object as a linked-list, as specified 
+ * by Histlist.h
+ * 
+ * Daniel Kim 10/7/14
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +16,9 @@
 Histlist createH (void) {
     return NULL;
 }
+
+
+
 
 // Return copy of token list recursively
 static token* copyT (token *list) {
@@ -38,6 +48,8 @@ static token* copyT (token *list) {
 }
 
 
+
+
 // Return pointer to malloc'd histlist
 static Histlist makeNode (token *list, int ncmd) {
     Histlist h = malloc (sizeof(*h));
@@ -46,6 +58,9 @@ static Histlist makeNode (token *list, int ncmd) {
     h->T = list;
     return h;
 }
+
+
+
 
 
 // Add a copy of LIST to the beginning of H
@@ -64,6 +79,8 @@ void addH (Histlist *pH, token *list, int ncmd) {
 }
 
 
+
+
 // Free nodes recursively
 void destroyH (Histlist h) {
     if (h == NULL)
@@ -74,13 +91,4 @@ void destroyH (Histlist h) {
         free(h);
     }
 }
-
-
-    
-
-
-
-
-
-
 

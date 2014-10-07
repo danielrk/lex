@@ -1,43 +1,65 @@
-#include <string.h>  // included in mainLex.c
-#include <stdlib.h>  // getLine.c includes this
+// An implementation of history.h, the
+// history mechanism for Lex.
+//
+// Interface specified by Prof. Eisenstat
+// Implementation by Daniel Kim
+// 10/7/14
+
+#include <string.h>  
+#include <stdlib.h> 
 #include <stdio.h>
 #include <ctype.h>
 #include "Histlist.h"
 
+
+// History mechanism
 static long histsize = 0;
-static Histlist hist = NULL;  
+static Histlist hist = NULL; 
+
+
+
+
 
 // Return concatenation of three (possibly empty) strings.
 // Only SUB can possibly be NULL, in which case it is ignored. 
+
 static char* three_cat (char *prefix, char *sub, char *suffix) {
+
     char *result;
+
     if (sub == NULL) { 
         result = malloc (sizeof(char) * (strlen(prefix)+strlen(suffix)+1));
         strncpy(result, prefix, strlen(prefix));
         strcpy(result+strlen(prefix), suffix);
     }
+
     else {
         result = malloc (sizeof(char) * (strlen(prefix)+strlen(sub)+strlen(suffix)+1));
         strncpy(result, prefix, strlen(prefix));
         strncpy(result+strlen(prefix), sub, strlen(sub));
         strcpy(result+strlen(prefix)+strlen(sub), suffix);
     }
+
     return result;
 }
 
 
 
-// Convert nonprinting chars in S to blanks except terminating newline
+
+// Convert nonprinting chars in S to blanks 
+// except terminating newline
+
 static void clean (char *s) {
     char *p;
+
     for (p = s; *p != '\0'; p++) {
+        
         // ignore terminating newline
         if (*p == '\n' && *(p+1) == '\0')
             break;
 
-        if (!isgraph(*p)) { // convert to space unless already blank
+        if (!isgraph(*p))  // convert to space unless already blank
             *p = (isspace(*p)? *p : ' ');
-        }
     }
 }
 
@@ -46,16 +68,22 @@ static void clean (char *s) {
 
 // Return 1 if LIST contains a token containing S
 //        0 otherwise
+
 static int isMatch (token *list, char *s) {
     token *t;
+
     for (t = list; t != NULL; t = t->next) {
+
         if (strstr(t->text, s) != NULL)   // is match?
             return 1;
 
     }
     return 0;
 }
-    
+
+
+
+
 
 // Set *pH to point to the most recent remembered command
 // with a token that contains S, which is assumed to be
@@ -63,6 +91,7 @@ static int isMatch (token *list, char *s) {
 // whitespace or ! or ?; or NULL otherwise.
 //
 // Return 0 if such node exists, or -1 otherwise
+
 static int get_match (Histlist *pH, char *s) {
     if (histsize == 0) {
         *pH = NULL;
@@ -93,24 +122,34 @@ static int get_match (Histlist *pH, char *s) {
 }
 
 
+
+
+
 // Set *pH to point to the node in hist
 // whose ncmd = n, or NULL
 // If node exists, return 0
 // Otherwise, return -1
 // Assume n >= 0 
+
 static int get_cmd (Histlist *pH, int n) {
     if (n == 0 || histsize==0) {
         *pH = NULL;
         return -1;
     }
+
     else {
+
         Histlist ptr = hist;
+
         for (; ptr != NULL && ptr->N != n; ptr = ptr->next) {
             if (n < ptr->N) { // N only increases down hist
                 *pH = NULL;
                 return -1;
             }
         }
+
+
+
         if (ptr == NULL) {
             *pH = NULL;
             return -1;
@@ -121,9 +160,14 @@ static int get_cmd (Histlist *pH, int n) {
         }
     }
 }
+
+
+
+
 // Set *pH to point to Nth last node in HIST 
 // Return 0 if such node exists; -1 otherwise
 // Assume N >= 0 
+
 static int get_nthlast (Histlist *pH, int n)
 {
     if (n == 0) {
@@ -147,8 +191,12 @@ static int get_nthlast (Histlist *pH, int n)
 }
 
 
+
+
+
 // Return concatenation of s1 and s2, separated by blank.
 // If s2 NULL, return copy of s1.
+
 static char* concat (const char *s1, const char *s2) {
     char *result;
     if (s2 == NULL) {
@@ -166,18 +214,25 @@ static char* concat (const char *s1, const char *s2) {
 
 
 
+
+
 // Return string of recursively concatenated 
 // texts in token list, or NULL if list is NULL
+
 static char* stringify (token *list) {
     if (list == NULL)
         return NULL;
     else {
-        char *rest = stringify (list->next);
+        char *rest   = stringify (list->next);
         char *result = concat (list->text, rest);
         free(rest);
         return result;
     }
 }
+
+
+
+
 // Return tokens specified by desig as a string,
 // If designated token does not exist, return NULL.
 // Note: 
@@ -189,7 +244,7 @@ static char* stringify (token *list) {
 // DESIG points to substring between event and suffix
 //
 
-static char* toktostr (Histlist h, char *desig, int *desig_len) {
+static char* toktostr (Histlist h, const char *desig, int *desig_len) {
     char *tokstr;
     token *list;
     if (h != NULL)  // if H==NULL, function just returns NULL after sets desig_len 
@@ -259,6 +314,8 @@ static char* toktostr (Histlist h, char *desig, int *desig_len) {
 
 
 
+
+
 // EXSTR is a string of the form "![...]", which begins with a possible
 // substitution event.
 //
@@ -268,7 +325,9 @@ static char* toktostr (Histlist h, char *desig, int *desig_len) {
 //        0 if EXSTR does not begin with a substitution event
 //       -1 if EXSTR begins with an impossible substitution event
 //
-static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
+
+
+static int get_sub_suf (const char *exstr, char **psub, char **psuffix) {
 
     int status; // valid sub?
     Histlist h; // ptr to hist node to be substituted, or NULL 
@@ -286,19 +345,19 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
     // "!N"
     else if (strspn(exstr+1, "0123456789")) {
         int spn = strspn(exstr+1,"0123456789");
-        int n = strtol(exstr+1, &desig_start, 10);
+        int n   = strtol(exstr+1, &desig_start, 10);
         get_cmd(&h, n);
-        *psub = toktostr(h,exstr+1+spn,&desig_len);
+        *psub    = toktostr(h,exstr+1+spn,&desig_len);
         *psuffix = malloc (sizeof(char) * (strlen(desig_start+desig_len) + 1));
                    strcpy(*psuffix, desig_start+desig_len);
     }
 
     // "!-N"
     else if (exstr[1] == '-' && strspn(exstr+2, "0123456789")) {
-        int n = strtol(exstr+2, &desig_start, 10);
+        int n   = strtol(exstr+2, &desig_start, 10);
         int spn = strspn(exstr+2, "0123456789");
         get_nthlast(&h, n);
-        *psub = toktostr(h,exstr+2+spn,&desig_len);
+        *psub    = toktostr(h,exstr+2+spn,&desig_len);
         *psuffix = malloc (sizeof(char) * (strlen(desig_start+desig_len) + 1));
                    strcpy(*psuffix, desig_start+desig_len);
     }
@@ -331,14 +390,14 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
                 free(s);
             }
             else { // not an event
-                *psub = NULL;
+                *psub    = NULL;
                 *psuffix = malloc (sizeof(char) * (strlen(exstr) + 1));
                            strcpy (*psuffix, exstr);
                 return 0;
             }
         }
         else { // not an event
-            *psub = NULL;
+            *psub    = NULL;
             *psuffix = malloc (sizeof(char) * (strlen(exstr) + 1));
                        strcpy (*psuffix, exstr);
             return 0;
@@ -347,7 +406,7 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
 
     // "![...]" not an event
     else {
-        *psub = NULL;
+        *psub    = NULL;
         *psuffix = malloc (sizeof(char) * (strlen(exstr) + 1));
                    strcpy (*psuffix, exstr);
         return 0;
@@ -358,11 +417,16 @@ static int get_sub_suf (char *exstr, char **psub, char **psuffix) {
     return status;
 }
 
+
+
+
 // Return recursively-expanded string, with non-printing chars in oldLine
 // converted to blanks (except terminating newlines).
 //
 // hExpand() sets STATUS to 1 if substitutions were made and all succeeded, to
 // 0 if no substitutions were requested, and to -1 if some substitution failed.
+
+
 char *hExpand (const char *oldLine, int *status)
 {
     int exclam = strcspn(oldLine, "!"); // null chars can't be put in stdin
@@ -416,12 +480,15 @@ char *hExpand (const char *oldLine, int *status)
 }
 
 
+
+
+
 // Add LIST and NCMD to HIST
 void hRemember(int ncmd, token *list)
 {
     // get effective histsize limit    
     long limit = 323; 
-    char *env = getenv("HISTSIZE");
+    char *env  = getenv("HISTSIZE");
     if (env != NULL && strtol(env, NULL, 10) > 0)
         limit = strtol(env, NULL, 10);
 
@@ -433,11 +500,12 @@ void hRemember(int ncmd, token *list)
     // histsize == limit + 1
     if (histsize > limit) {
         Histlist tmp = hist;
-        hist = hist->next;
-        tmp->next = NULL;
+                hist = hist->next;
+           tmp->next = NULL;
         destroyH(tmp);
     }
 }
+
 
 
 // Free hist and reinitialize
@@ -446,6 +514,10 @@ void hClear (void) {
     hist = createH();
     histsize = 0;
 }
+
+
+
+
 
 // Print a command (list of tokens) in the following form:
 //     printf ("%6d  %s %s ... %s\n", icmd, token0, token1, ..., tokenLast)

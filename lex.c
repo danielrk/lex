@@ -1,43 +1,55 @@
+/* An implementation of lex.h, as specified
+ * by Prof. Eisenstat.
+ * Daniel Kim 10/7/14
+ */
+
 #include <string.h> 
 #include <stdlib.h>
 #include <ctype.h>
 #include "/c/cs323/Hwk4/lex.h"
 
+
+
 // Return type of token specified by META, 
 // which is a null-terminated string consisting
 // of the text of a single metacharacter token
+
 static int get_type (char *meta) {
-    if (strcmp(meta, "<")==0)
+    if (strcmp(meta, "<") ==0)
         return REDIR_IN;
     if (strcmp(meta, "<<")==0)
         return REDIR_HERE;
-    if (strcmp(meta, "|")==0)
+    if (strcmp(meta, "|") ==0)
         return REDIR_PIPE;
-    if (strcmp(meta, ">")==0)
+    if (strcmp(meta, ">") ==0)
         return REDIR_OUT;
     if (strcmp(meta, ">>")==0)
         return REDIR_APP;
-    if (strcmp(meta, ";")==0)
+    if (strcmp(meta, ";") ==0)
         return SEP_END;
-    if (strcmp(meta, "&")==0)
+    if (strcmp(meta, "&") ==0)
         return SEP_BG;
     if (strcmp(meta, "&&")==0)
         return SEP_AND;
     if (strcmp(meta, "||")==0)
         return SEP_OR;
-    if (strcmp(meta, "(")==0)
+    if (strcmp(meta, "(") ==0)
         return PAREN_LEFT;
-    if (strcmp(meta, ")")==0)
+    if (strcmp(meta, ")") ==0)
         return PAREN_RIGHT;
 
     return EXIT_FAILURE; // bad input
 }
     
 
+
+
+
 // Return copy of initial substring token
 // of metachars, and set *T_TYPE to token type
 // S is in the form "[META]+..."
-static char* metatext(char *s, int *t_type) {
+
+static char* metatext(const char *s, int *t_type) {
     
     // token text at most length 2
     char *text = malloc(sizeof(char) * 3); 
@@ -62,7 +74,9 @@ static char* metatext(char *s, int *t_type) {
     return text;
 }
 
-    
+
+
+
 // Return a recursively built linked list of
 // tokens in LINE, or NULL if no tokens
 //
@@ -73,9 +87,10 @@ static char* metatext(char *s, int *t_type) {
 //      tabs
 //      terminating newline
 // Note: line can be empty string
+
 token *lex (const char *line) {
 
-    char *p = line; // pointer along line
+    const char *p = line; // pointer along line
 
     token *list = malloc(sizeof(*list));    // pointer to immediate token
     char *s;        // token text
@@ -106,7 +121,7 @@ token *lex (const char *line) {
         // take everything until
         // metachar, blank, newline, null, etc. 
         int s_len = strcspn(p, "<>;&|() \t\n\v\f\r\0");
-        s = malloc(sizeof(char) * (s_len + 1));
+                s = malloc(sizeof(char) * (s_len + 1));
         strncpy(s, p, s_len);
         s[s_len] = '\0';
         t_type = SIMPLE;

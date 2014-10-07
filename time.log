@@ -18,8 +18,25 @@ Date  Time   Spent  Work completed
 10/6  19:15  1:30   Makefile, modified includes
 10/7   1:00  2:00   :M memory bug
 10/7  10:00  1:00   fixed seg fault
-10/7  11:00  0:40   fixed infinite loop for [..]![..]
+10/7  11:00  1:00   fixed infinite loop for [..]![..]
                     memleak in lex.c
-             ----
-                    TOTAL time spent
+                    fixed warnings w/ const char*
 
+             ----
+             24:30       TOTAL time spent
+
+Just getting the program to compile was the
+most conceptually foreign challenge to me. I
+only had a vague notion of compilation + linking
+and didn't understand that a source file could
+be compiled with only declarations of functions
+included with a header, and that the compiler
+looks for definitions when it links the compilation
+units. Additionally, since mainLex.c and history.h
+were already written and I never used const char*, 
+I was forced to understand that any function using
+a const char* must also promise not to modify the
+string. Finally, I had to understand echo -e and
+the difference between double and single quotes in
+UNIX to debug my program. All in all, an edifying
+assignment.

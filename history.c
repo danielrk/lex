@@ -5,7 +5,7 @@
 #include "Histlist.h"
 
 static long histsize = 0;
-static Histlist hist = createH();
+Histlist hist = createH(); // not constant
 
 // Return recursively-expanded string, with non-printing chars in oldLine
 // converted to blanks (except terminating newlines).

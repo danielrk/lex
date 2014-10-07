@@ -10,21 +10,6 @@ Histlist createH (void) {
     return NULL;
 }
 
-// Add a copy of LIST to the beginning of H
-void addH (Histlist h, token *list, int ncmd) {
-    token *copy = copyT(list);
-    Histlist new_node = makeNode(copy, ncmd);
-    if (h == NULL)
-        *h = *new_node;
-    else {
-        Histlist ptr = h;
-        while (ptr->next != NULL)
-            ptr = ptr->next;
-
-        ptr->next = new_node;
-    }
-}
-
 // Return copy of token list recursively
 static token* copyT (token *list) {
     if (list == NULL)
@@ -47,6 +32,8 @@ static token* copyT (token *list) {
         
         // copy next
         copy->next = copyT(list->next);
+
+        return copy;
     }
 }
 
@@ -59,6 +46,23 @@ static Histlist makeNode (token *list, int ncmd) {
     h->T = list;
     return h;
 }
+
+
+// Add a copy of LIST to the beginning of H
+void addH (Histlist h, token *list, int ncmd) {
+    token *copy = copyT(list);
+    Histlist new_node = makeNode(copy, ncmd);
+    if (h == NULL)
+        *h = *new_node;
+    else {
+        Histlist ptr = h;
+        while (ptr->next != NULL)
+            ptr = ptr->next;
+
+        ptr->next = new_node;
+    }
+}
+
 
 // Free nodes recursively
 void destroyH (Histlist h) {

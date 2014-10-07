@@ -5,7 +5,7 @@ typedef struct {
     Histlist next;
     int N; // ncmd
     token *T;
-} histlist *Histlist;
+} histlist Histlist*;
 
 // Return pointer to empty histlist 
 Histlist createH (void);

@@ -36,7 +36,7 @@ static void clean (char *s) {
             break;
 
         if (!isgraph(*p)) { // convert to space unless already blank
-            *p = (isblank(*p)? *p : ' ');
+            *p = (isspace(*p)? *p : ' ');
         }
     }
 }

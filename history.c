@@ -218,15 +218,17 @@ static char* toktostr (token *list, char *desig, int *desig_len) {
         // ":M" ( ":[0-9]+" )
         else if (desig[0] == ':' && strspn(desig+1,"0123456789")) {
             
+
             *desig_len = 1 + strspn(desig+1,"0123456789");
             int M = strtol (desig+1, NULL, 10); // == nMoves to reach T
-
+            t = list;
             for (int i = 0; i < M; i++) {
 
                 t = t->next;
                 if (t == NULL)  // desig token doesn't exist
                     return NULL;
             }
+
         }
 
         else { // DESIG not a token designator
@@ -234,7 +236,6 @@ static char* toktostr (token *list, char *desig, int *desig_len) {
             *desig_len = 0;
             return stringify (list);
         }
-
         tokstr = malloc(sizeof(char) * (strlen(t->text)+1));
         strcpy(tokstr, t->text);
     }
